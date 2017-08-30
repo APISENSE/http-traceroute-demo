@@ -1,0 +1,24 @@
+---
+layout: page
+title: About
+permalink: /about/
+---
+
+<p>
+Learn more about <a href="{{ site.url_apisense }}">{{ site.apisense }}</a>.
+</p>
+
+<h2>Technology</h2>
+<ul>
+	<li><a href="{{ site.url_apisense }}" target="_blank">{{ site.apisense }}</a>: Crowd-sensing platform that make easily to collect real world data feedback from sensors</li>
+	<li><a href="{{ site.url_bee }}"  target="_blank">{{ site.bee }}</a>: An Android app with the {{ site.apisense }} SDK for Android. <a href="{{ site.googleplus_community_url }}">Enter on Google+ community to get alpha access &rarr;</a></li>
+	<li><a href="https://github.com/APISENSE/afnic2015" target="_blank">Github</a> for hosting this demonstration website</li>
+	<li><a href="http://docs.apisense.com" target="_blank">Documentation</a> to make your own application using our technology.
+</ul>
+
+<h2>Team</h2>
+<div class="row">
+	{% for teammate in site.team %}
+		{% include thumbnail.html member=teammate %}
+	{% endfor %}
+</div>

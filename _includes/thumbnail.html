@@ -1,0 +1,26 @@
+
+<div class="col-sm-3 col-md-3">
+  <div class="thumbnail">
+    {% if include.member.img_url %}
+      <img src="{{ include.member.img_url }}" alt="{{ include.member.name }}">
+    {% else %}
+      <img src="{{ site.baseurl }}/img/default-avatar.png" alt="{{ include.member.name }}">
+    {% endif %}
+
+    <div class="caption">
+      <p style="font-size:16px;margin-bottom:5px;">{{ include.member.name }}</p>
+      <ul style="margin-bottom:0px;" class="list-inline">
+        {% if include.member.linkedin_url %}
+          <li><a href="{{ include.member.linkedin_url }}" target="_blank"><i class="fa fa-linkedin-square"></i></a></li>
+        {% else %}
+          <li><i class="fa fa-linkedin-square grey"></i></li>
+        {% endif %}
+        {% if include.member.twitter_username %}
+          <li><a href="https://twitter.com/{{ include.member.twitter_username }}" target="_blank"><i class="fa fa-twitter"></i></a></li>
+        {% else %}
+          <li><i class="fa fa-twitter grey"></i></li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+</div>

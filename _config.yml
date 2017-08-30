@@ -1,0 +1,34 @@
+# Site settings
+title: HTTP Traceroute map
+title_short: Traceroute
+description: >
+  APISENSE® makes it easy to collect data with crowds of mobile phone sensors.
+  Make sense and innovate on top of real world data feedback, in real time!.
+
+email: contact@apisense.io
+baseurl: "/traceroutes"
+url: "http://apisense.github.io"
+
+apisense: APISENSE
+url_apisense: https://apisense.io
+
+bee: Bee
+url_bee: https://play.google.com/apps/testing/com.apisense.bee
+
+twitter_username: APISENSE
+github_username: APISENSE
+googleplus_community_url: https://plus.google.com/communities/110676255059293415882
+
+# Build settings
+markdown: kramdown
+
+# Team
+team:
+  - name: Romain Rouvoy
+    img_url: http://image-uniservice.copainsdavant.com/image/450/1182523319/11103357.jpg
+    twitter_username: RomainRouvoy
+    linkedin_url: http://fr.linkedin.com/in/rouvoy/fr
+  - name: Antoine Veuiller
+    linkedin_url: https://www.linkedin.com/in/antoine-veuiller-773aba121
+
+

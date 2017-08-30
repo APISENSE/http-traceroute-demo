@@ -1,0 +1,46 @@
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width initial-scale=1">
+
+	<link rel="shortcut icon" href="//apisense.github.io/web-assets/images/favicon.png">
+
+	<title>{% if page.title %}{{ page.title }} - {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
+	<meta name="description" content="{% if page.excerpt %}{{ page.excerpt | strip_html | strip_newlines | truncate: 160 }}{% else %}{{ site.description }}{% endif %}">
+
+	<!-- CSS -->
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+	<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="{{ "/css/custom.css" | prepend: site.baseurl }}">
+
+	<link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
+	<link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="{{ "/feed.xml" | prepend: site.baseurl | prepend: site.url }}" />
+
+	<!-- Import jQuery -->
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+	<!-- Cool bootstrap-select plugin -->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/css/bootstrap-select.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/js/bootstrap-select.min.js"></script>
+	
+	<!-- for Google -->
+	<meta name="description" content="{{ site.description }}" />
+	<meta name="keywords" content="crowd-sensing, privacy, {{ site.apisense }}" />
+
+	<meta name="author" content="{{ site.apisense }}" />
+	<meta name="copyright" content="{{ site.apisense }}" />
+	<meta name="application-name" content="{{ site.title }}" />
+
+	<!-- for Facebook -->
+	<meta property="og:title" content="{{ site.title }}" />
+	<meta property="og:type" content="article" />
+	<meta property="og:image" content="http://apisense.github.io/web-assets/images/apisense.png" />
+	<meta property="og:url" content="{{ site.url }}{{ site.baseurl }}" />
+	<meta property="og:description" content="{{ site.description }}" />
+
+	<!-- for Twitter -->
+	<meta name="twitter:card" content="summary" />
+	<meta name="twitter:title" content="{{ site.title }}" />
+	<meta name="twitter:description" content="{{ site.description }}" />
+	<meta name="twitter:image" content="http://apisense.github.io/web-assets/images/apisense.png" />
+</head>
