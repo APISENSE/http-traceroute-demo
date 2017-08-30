@@ -1,0 +1,4 @@
+[submodule "libs/apisense-web-helper"]
+	path = libs/apisense-web-helper
+	url = git@github.com:Inria-Chile/apisense-web-helper.git
+	branch = develop
