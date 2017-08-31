@@ -1,34 +1,37 @@
 <div class="container">
-  <footer class="footer">
-  <div class="row">
-    <div class="col-xs-12 col-sm-6">
-      <ul class="list-inline">
-        <li>&copy; <a href="{{ site.url_apisense }}" target="_blank">{{ site.apisense }}</a> 2015</li>
-        <li><a href="mailto:{{ site.email }}">Contact us</a></li>
-      </ul>
-    </div>
-    <div class="col-sm-6 text-right hidden-xs">
-      <ul class="list-inline">
-        {% if site.github_username %}
-        <li><i class="fa fa-github"></i> <a href="https://github.com/{{ site.github_username }}/afnic2015" target="_blank">Github</a></li>
-        {% endif %}
-        {% if site.googleplus_community_url %}
-        <li><i class="fa fa-google-plus-square"></i> <a href="{{ site.googleplus_community_url }}" target="_blank">Community</a></li>
-        {% endif %}
-      </ul>
-    </div>
-  </div>
-  </footer>
+    <footer class="footer">
+        <div class="row">
+            <div class="col-xs-12 col-sm-6">
+                <ul class="list-inline">
+                    <li>&copy; <a href="{{ site.url_apisense }}" target="_blank">{{ site.apisense }}</a> 2015</li>
+                    <li><a href="mailto:{{ site.email }}">Contact us</a></li>
+                </ul>
+            </div>
+            <div class="col-sm-6 text-right hidden-xs">
+                <ul class="list-inline">
+                    {% if site.github_username %}
+                    <li><i class="fa fa-github"></i> <a href="https://github.com/{{ site.github_username }}/afnic2015"
+                                                        target="_blank">Github</a></li>
+                    {% endif %}
+                    {% if site.googleplus_community_url %}
+                    <li><i class="fa fa-google-plus-square"></i> <a href="{{ site.googleplus_community_url }}"
+                                                                    target="_blank">Community</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </footer>
 </div>
-
-<!-- Initialize Google map -->
-<script src="{{ '/libs/traceroute-map/map.js' | prepend: site.baseurl }}"></script>
-
-<!-- Map Controller -->
-<script src="{{ '/libs/traceroute-map/controller.js' | prepend: site.baseurl }}"></script>
 
 <!-- Add APISENSE helper lib -->
 <script src="{{ '/libs/apisense-web-helper/build/apisense.bundle.js' | prepend: site.baseurl }}"></script>
+
+<!-- Add APISENSE Map lib -->
+<script src="{{ '/libs/traceroute-map/geoip.js' | prepend: site.baseurl }}"></script>
+<script src="{{ '/libs/traceroute-map/map.js' | prepend: site.baseurl }}"></script>
+
+<!-- Include our own scripts -->
+<script src="{{ '/js/http-traceroute-charts.js' | prepend: site.baseurl }}"></script>
 <script src="{{ '/js/http-traceroute.js' | prepend: site.baseurl }}"></script>
 
 <!-- Nice lib -->
@@ -37,7 +40,11 @@
 <!-- Sexy date time picker -->
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
 
-<!-- Analytics script 
+<!-- Google Map API -->
+<script src="https://maps.googleapis.com/maps/api/js?libraries=visualization&callback=initTraceroutePlot"></script>
+<script src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script>
+
+<!-- Analytics script
 <script>
   (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
   (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
