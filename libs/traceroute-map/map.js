@@ -135,8 +135,6 @@ class TracerouteMap {
             let latitude = info.latitude;
             let longitude = info.longitude;
             let scanUrl = info.target;
-            let scanPing = info.scan_ping;
-            let scanIP = info.scan_ip;
             let scanTTL = info.scan_ttl;
             let traceroute = info.scan_trace;
 
@@ -146,8 +144,9 @@ class TracerouteMap {
             }
 
             let userLocation = new google.maps.LatLng(info.latitude, info.longitude); // First location
-
-            this._setColor(userLocation, scanIP, scanPing);
+            let finalRouterPing = traceroute[traceroute.length - 1].ping;
+            let finalRouterIP = traceroute[traceroute.length - 1].ip;
+            this._setColor(userLocation, finalRouterIP, finalRouterPing);
 
             let trace_output = "";
             let orderedNodes = [];
@@ -176,7 +175,7 @@ class TracerouteMap {
             geoIP.onAsyncFinished(function (localizedNodes) {
                 let contentString =
                     "<h4>Geolocalisation</h4><p>Latitude : " + latitude + "<br/>Longitude : " + longitude + "</p>" +
-                    "<h4>Scan</h4><p>Target : " + scanUrl + "<br/>Latency : " + scanPing + " ms" +
+                    "<h4>Scan</h4><p>Target : " + scanUrl + "<br/>Latency : " + finalRouterPing + " ms" +
                     "<br/>TTL max : " + scanTTL + "<br/>Traceroute :<br/>" + trace_output + "</p>";
 
                 let nodesSet = {};
