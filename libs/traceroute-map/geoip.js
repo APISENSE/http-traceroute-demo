@@ -46,7 +46,7 @@ class GeoIP {
 
     _callGeoIPService(ip, callback) {
         let that = this;
-        $.getJSON("http://freegeoip.net/json/" + ip, function (data) {
+        $.getJSON("https://freegeoip.net/json/" + ip, function (data) {
             let latlng = new google.maps.LatLng(data.latitude, data.longitude);
             that._locationCache[ip] = latlng;
             callback(latlng);

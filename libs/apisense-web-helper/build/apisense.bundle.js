@@ -12592,6 +12592,8 @@ Converter.prototype.getValues = function(space) {
 
 module.exports = convert;
 },{"./conversions":46}],48:[function(require,module,exports){
+'use strict'
+
 module.exports = {
 	"aliceblue": [240, 248, 255],
 	"antiquewhite": [250, 235, 215],
@@ -12742,6 +12744,7 @@ module.exports = {
 	"yellow": [255, 255, 0],
 	"yellowgreen": [154, 205, 50]
 };
+
 },{}],49:[function(require,module,exports){
 //! moment.js
 //! version : 2.18.1
