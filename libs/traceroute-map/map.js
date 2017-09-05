@@ -1,6 +1,9 @@
 /**
  * Create a Google Map handling traceroutes data from APISENSE.
  *
+ * The color on the map are mapped onto the ping result
+ * where 0 will be displayed in green and 1000+ in red.
+ *
  * Please ensure to load Google Map API before initializing this class:
  * <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization"></script>
  * <script src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script>
@@ -22,6 +25,7 @@ class TracerouteMap {
         this._usersLocations = [];
         this._markers = [];
         this._lines = [];
+        this._colors = {};
         this.reloadGoogleMap()
     }
 
@@ -110,6 +114,7 @@ class TracerouteMap {
         this._lines = [];
 
         this._usersLocations = [];
+        this._colors = {};
     }
 
     /**
@@ -130,7 +135,6 @@ class TracerouteMap {
             let latitude = info.latitude;
             let longitude = info.longitude;
             let scanUrl = info.target;
-            let scanPing = info.scan_ping;
             let scanTTL = info.scan_ttl;
             let traceroute = info.scan_trace;
 
@@ -140,6 +144,9 @@ class TracerouteMap {
             }
 
             let userLocation = new google.maps.LatLng(info.latitude, info.longitude); // First location
+            let finalRouterPing = traceroute[traceroute.length - 1].ping;
+            let finalRouterIP = traceroute[traceroute.length - 1].ip;
+            this._setColor(userLocation, finalRouterIP, finalRouterPing);
 
             let trace_output = "";
             let orderedNodes = [];
@@ -168,7 +175,7 @@ class TracerouteMap {
             geoIP.onAsyncFinished(function (localizedNodes) {
                 let contentString =
                     "<h4>Geolocalisation</h4><p>Latitude : " + latitude + "<br/>Longitude : " + longitude + "</p>" +
-                    "<h4>Scan</h4><p>Target : " + scanUrl + "<br/>Latency : " + scanPing + " ms" +
+                    "<h4>Scan</h4><p>Target : " + scanUrl + "<br/>Latency : " + finalRouterPing + " ms" +
                     "<br/>TTL max : " + scanTTL + "<br/>Traceroute :<br/>" + trace_output + "</p>";
 
                 let nodesSet = {};
@@ -220,11 +227,12 @@ class TracerouteMap {
 
         let user = this._createUserMarker(userLocation, contentString);
         this._usersLocations.push(user);
-        this._createFinalRouterMarker(drawRequest.slice(-1)[0]);
+        this._createFinalRouterMarker(drawRequest.slice(-1)[0]); // Final router coordinates
         for (let coordinates in drawRequest.slice(1, -1)) {
             this._createRouterMarker(drawRequest[coordinates])
         }
-        this._drawRequestsPath(drawRequest);
+        this._drawRequestsPath(drawRequest,
+            this._retrieveColor(userLocation, orderedNodes.slice(-1)[0])); // Final router IP
     }
 
     /**
@@ -305,14 +313,15 @@ class TracerouteMap {
     /**
      * Draw a path between each LatLng object in coordinates array
      *
-     * @param coordinates
+     * @param coordinates The list of coordinated to draw.
+     * @param color The line color to use.
      * @private
      */
-    _drawRequestsPath(coordinates) {
+    _drawRequestsPath(coordinates, color) {
         let flightPath = new google.maps.Polyline({
             path: coordinates,
             geodesic: true,
-            strokeColor: TracerouteMap._getRandomDarkColor(),
+            strokeColor: color,
             strokeOpacity: this.configuration.strokeOpacity,
             strokeWeight: this.configuration.strokeWeight
         });
@@ -321,10 +330,22 @@ class TracerouteMap {
         this._lines.push(flightPath);
     }
 
-    static _getRandomDarkColor() {
-        let hue = Math.floor(Math.random() * 360),
-            saturation = Math.floor(Math.random() * 100),
-            lightness = Math.floor(Math.random() * 50);
-        return "hsl(" + hue + ", " + saturation + "%, " + lightness + "%)";
+    _setColor(userLocation, scanIP, scanPing) {
+        if (this._colors[userLocation] === undefined) {
+            this._colors[userLocation] = {};
+        }
+        this._colors[userLocation][scanIP] = TracerouteMap._getPerformanceColor(scanPing);
+    }
+
+    _retrieveColor(userLocation, scanIP) {
+        return this._colors[userLocation][scanIP];
+    }
+
+    static _getPerformanceColor(ping) {
+        // If the ping is under 1000 we use the proportional color, else we set to bad result.
+        let value = ping < 1000 ? ping / 1000 : 1;
+        //value from 0 to 1
+        const hue = ((1 - value) * 120).toString(10);
+        return ["hsl(", hue, ",100%,50%)"].join("");
     }
 }
