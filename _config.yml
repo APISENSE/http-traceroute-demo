@@ -6,7 +6,7 @@ description: >
   Make sense and innovate on top of real world data feedback, in real time!.
 
 email: contact@apisense.io
-baseurl: "/traceroutes"
+baseurl: "/http-traceroute-demo"
 url: "http://apisense.github.io"
 
 apisense: APISENSE
