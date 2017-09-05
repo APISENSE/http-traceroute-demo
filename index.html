@@ -6,6 +6,23 @@ layout: default-fluid
     No data to display, select some traces<a href="#" class="close-alert"> <i class="fa fa-times"></i></a>
 </div>
 
+
+<div class="row" id="wrapper-map">
+    <div class="col-md-12" id="map-view">
+        <div class="btn-group pull-right" role="group" aria-label="...">
+
+            <select class="selectpicker pull-left" id="traceroute-picker"
+                    title="Select traceroutes" data-actions-box="true"
+                    data-live-search="true" multiple>
+            </select>
+            <button id="loading-data" class="btn btn-success">Load</button>
+        </div>
+
+        <div id="map-canvas">
+        </div>
+    </div>
+</div>
+
 <div class="row" id="wrapper-charts">
     <div class="col-md-3 chartContainer">
         <canvas id="endpoints-distribution" width="500" height="500"></canvas>
@@ -17,37 +34,6 @@ layout: default-fluid
         <canvas id="hops-distribution" width="500" height="500"></canvas>
     </div>
     <div class="col-md-3 chartContainer">
-        <canvas  width="500" height="500"></canvas>
-    </div>
-</div>
-
-<div class="row" id="wrapper-map">
-    <div class="col-md-12" id="map-view">
-        <form id="mapFilterForm" class="form-inline metadata-info" role="form">
-            <div class="btn-group pull-right" role="group" aria-label="...">
-                <select class="selectpicker pull-left" id="traceroute-picker"
-                        title="Select traceroutes" data-actions-box="true"
-                        data-live-search="true" multiple>
-                </select>
-                <button type="submit" id="loading-data" class="btn btn-success">Load</button>
-            </div>
-            <div class="btn-group" role="group" aria-label="...">
-                <button type="text" disabled="disabled" class="btn"><b>Host</b> Facebook.com</button>
-                <button type="text" disabled="disabled" class="btn"><b>Media</b> WiFi / GSM</button>
-                <button type="text" disabled="disabled" class="btn"><b><span id="nb-of-traces">?</span></b> Traces
-                    collected
-                </button>
-                <button type="text" disabled="disabled" class="btn"><b><span id="nb-of-routers">?</span></b> Nodes
-                    reached
-                </button>
-                <button type="text" disabled="disabled" class="btn"><b><span id="avg-ttl">?</span></b> Avg. TTL</button>
-                <button type="text" disabled="disabled" class="btn"><b><span id="avg-ping">?</span></b> Avg. latency
-                    (ms)
-                </button>
-            </div>
-        </form>
-
-        <div id="map-canvas">
-        </div>
+        <canvas id="ping-ttl" width="500" height="500"></canvas>
     </div>
 </div>
