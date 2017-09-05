@@ -1,0 +1,13 @@
+.idea
+
+# We only keep the build directory from apisense-web-helper
+libs/apisense-web-helper/examples/
+libs/apisense-web-helper/gulpfile.js
+libs/apisense-web-helper/karma.conf.js
+libs/apisense-web-helper/LICENSE
+libs/apisense-web-helper/node_modules
+libs/apisense-web-helper/package.json
+libs/apisense-web-helper/package-lock.json
+libs/apisense-web-helper/README.md
+libs/apisense-web-helper/src/
+libs/apisense-web-helper/test/
