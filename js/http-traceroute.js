@@ -16,11 +16,12 @@ function initTraceroutePlot() {
         $("#loading-data").click(function () {
             crop.getRecords().then((records) => {
                 let filters = filterSelect.selectpicker().find("option:selected");
-                let filtered = filterData(records, filters);
+                let validTraceroutes = records.filter((value) => value.scan_trace !== undefined);
+                let filtered = filterData(validTraceroutes, filters);
 
-                map.plotData(filtered);
                 charts.clearCharts();
-                charts.loadCharts(filtered)
+                charts.loadCharts(filtered);
+                map.plotData(filtered);
             });
         });
     });
