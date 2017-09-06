@@ -68,8 +68,8 @@ function initSelect(select, records) {
 
 function emptySelect(select) {
     // Backward traversal is important here
-    for (let i = select.length - 1; i >= 0; i--) {
-        select.remove(i);
+    for (let i = select[0].length - 1; i >= 0; i--) {
+        select[0].remove(i);
     }
 }
 
