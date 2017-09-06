@@ -1,4 +1,4 @@
 [submodule "libs/apisense-web-helper"]
 	path = libs/apisense-web-helper
-	url = https://github.com/Inria-Chile/apisense-web-helper.git
-	branch = develop
+	url = https://github.com/aveuiller/apisense-web-helper.git
+	branch = fix/collectDataPages
