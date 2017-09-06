@@ -40,8 +40,6 @@ module.exports = function () {
         }
         xhr.onload = function (e) {
             if (xhr.status === 200) {
-                var data = JSON.parse(xhr.responseText);
-                callback(data);
                 var pageData = JSON.parse(xhr.responseText);
                 if (pageData.length === 0) {
                     callback(data);
@@ -143,7 +141,7 @@ module.exports = function () {
                 });
             } else {
                 var _dataset = [];
-                var keys = Object.keys(dataset);
+                var keys = Object.keys(dataset); // return array of string
 
                 for (var _i = 0; _i < keys.length; _i++) {
                     var x = keys[_i];
@@ -152,7 +150,7 @@ module.exports = function () {
                         throw new Error('Invalid data format');
                     }
                     _dataset.push({
-                        x: x,
+                        x: parseInt(x),
                         y: y
                     });
                 }
@@ -374,6 +372,9 @@ module.exports = function () {
             };
 
             if (xValues) {
+                xValues.sort(function (a, b) {
+                    return a - b;
+                });
                 var dataByLabel = [];
                 var index = 0;
                 for (var _j2 = 0; _j2 < xValues.length; _j2++) {
