@@ -4,7 +4,6 @@
  */
 function initTraceroutePlot() {
     let filterSelect = $("#traceroute-picker");
-    let chartWrapper = $("#wrapper-charts");
 
     let crop = new Apisense.Crop("kzOZK30R04i9wlE5v0KE", {});
     let map = new TracerouteMap(document.getElementById("map-canvas"));
@@ -20,7 +19,7 @@ function initTraceroutePlot() {
                 let filtered = filterData(records, filters);
 
                 map.plotData(filtered);
-                charts.clearCharts(chartWrapper);
+                charts.clearCharts();
                 charts.loadCharts(filtered)
             });
         });
