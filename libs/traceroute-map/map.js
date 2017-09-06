@@ -23,9 +23,8 @@ class TracerouteMap {
         this._mapElement = element;
         this._lastInfoWindow = undefined;
         this._usersLocations = [];
-        this._markers = [];
-        this._lines = [];
         this._colors = {};
+        this._traceroutesMarkers = [];
         this.reloadGoogleMap()
     }
 
@@ -100,20 +99,16 @@ class TracerouteMap {
 
     /**
      * Reset the map to show nothing.
+     *
      * @private
      */
     _clearMap() {
-        for (let i = 0; i < this._markers.length; i++) {
-            this._markers[i].setMap(null);
+        for (let i = 0; i < this._traceroutesMarkers.length; i++) {
+            TracerouteMap._setMap(this._traceroutesMarkers[i], null);
         }
-        this._markers = [];
-
-        for (let i = 0; i < this._lines.length; i++) {
-            this._lines[i].setMap(null);
-        }
-        this._lines = [];
 
         this._usersLocations = [];
+        this._traceroutesMarkers = [];
         this._colors = {};
     }
 
@@ -216,6 +211,7 @@ class TracerouteMap {
      * @private
      */
     _drawServerNodes(userLocation, orderedNodes, localizedNodes, contentString) {
+        let tracerouteMarkers = [];
         let drawRequest = [userLocation];
         let ip;
         for (let index in orderedNodes) {
@@ -225,17 +221,31 @@ class TracerouteMap {
             }
         }
 
+        // Create start point
         let user = this._createUserMarker(userLocation, contentString);
         this._usersLocations.push(user);
-        this._createFinalRouterMarker(drawRequest.slice(-1)[0]); // Final router coordinates
+        tracerouteMarkers.push(user);
+
+        // Create endpoint
+        let marker = this._createFinalRouterMarker(drawRequest.slice(-1)[0], contentString); // Final router coordinates
+        tracerouteMarkers.push(marker);
+
+        // Create intermediary routers
         for (let coordinates in drawRequest.slice(1, -1)) {
-            this._createRouterMarker(drawRequest[coordinates])
+            marker = this._createRouterMarker(drawRequest[coordinates], contentString);
+            tracerouteMarkers.push(marker);
         }
-        this._drawRequestsPath(drawRequest,
-            this._retrieveColor(userLocation, orderedNodes.slice(-1)[0])); // Final router IP
+
+        // Draw route using final
+        let color = this._retrieveColor(userLocation, orderedNodes.slice(-1)[0]); // Final router IP
+        marker = this._drawRequestsPath(drawRequest, color, contentString);
+        tracerouteMarkers.push(marker);
+
+        this._traceroutesMarkers.push(tracerouteMarkers);
     }
 
     /**
+     * Create clusters with the given markers.
      *
      * @param markersToClusterize
      * @private
@@ -263,61 +273,58 @@ class TracerouteMap {
             map: this._map,
             title: 'Performances monitoring'
         });
-        let infowindow = new google.maps.InfoWindow({
-            content: infoContent
-        });
-        let that = this;
-        google.maps.event.addListener(marker, 'click', function () {
-            if (this._lastInfoWindow) {
-                this._lastInfoWindow.close();
-            }
-            infowindow.open(that._map, marker);
-            this._lastInfoWindow = infowindow; // Keep track of the last infoWindow
-        });
-        this._markers.push(marker);
+        this._addContentPopup(marker, infoContent);
         return marker;
     }
 
     /**
      * Create a Router marker on the map
      *
-     * @param coordinates
+     * @param coordinates The server coordinates.
+     * @param infoContent
+     * @return {google.maps.Marker} The created router marker.
      * @private
      */
-    _createRouterMarker(coordinates) {
+    _createRouterMarker(coordinates, infoContent) {
         let marker = new google.maps.Marker({
             position: coordinates,
             map: this._map,
             icon: "https://cdn2.iconfinder.com/data/icons/gnomeicontheme/32x32/places/gnome-fs-server.png", // Router
             title: 'Router'
         });
-        this._markers.push(marker);
+        this._addContentPopup(marker, infoContent);
+        return marker;
     }
 
     /**
      * Create a server marker on the map.
      *
-     * @param coordinates
+     * @param coordinates The endpoint coordinates.
+     * @param infoContent The content to print for this traceroute.
+     * @return {google.maps.Marker} The created final router marker.
      * @private
      */
-    _createFinalRouterMarker(coordinates) {
+    _createFinalRouterMarker(coordinates, infoContent) {
         let marker = new google.maps.Marker({
             position: coordinates,
             map: this._map,
             icon: "https://cdn3.iconfinder.com/data/icons/fatcow/32x32/server_lightning.png", // Star
             title: 'Final server'
         });
-        this._markers.push(marker);
+        this._addContentPopup(marker, infoContent);
+        return marker;
     }
 
     /**
      * Draw a path between each LatLng object in coordinates array
      *
-     * @param coordinates The list of coordinated to draw.
+     * @param coordinates The list of coordinates to draw.
      * @param color The line color to use.
+     * @param infoContent The content to print for this traceroute.
+     * @return {google.maps.Polyline} The path reference.
      * @private
      */
-    _drawRequestsPath(coordinates, color) {
+    _drawRequestsPath(coordinates, color, infoContent) {
         let flightPath = new google.maps.Polyline({
             path: coordinates,
             geodesic: true,
@@ -327,9 +334,19 @@ class TracerouteMap {
         });
 
         flightPath.setMap(this._map);
-        this._lines.push(flightPath);
+        this._addContentPopup(flightPath, infoContent);
+        // this._lines.push(flightPath);
+        return flightPath;
     }
 
+    /**
+     * Define a color for the given ping and associate it to the userLocation and scanIP pair.
+     *
+     * @param userLocation The starting location for this traceroute.
+     * @param scanIP The endpoint IP for this traceroute.
+     * @param scanPing The traceroute ping, to determine color.
+     * @private
+     */
     _setColor(userLocation, scanIP, scanPing) {
         if (this._colors[userLocation] === undefined) {
             this._colors[userLocation] = {};
@@ -337,15 +354,91 @@ class TracerouteMap {
         this._colors[userLocation][scanIP] = TracerouteMap._getPerformanceColor(scanPing);
     }
 
+    /**
+     * Return the created color input for the given userLocation and scanIP pair.
+     *
+     * @param userLocation The starting location for this traceroute.
+     * @param scanIP The endpoint IP for this traceroute.
+     * @return {*} The defined color.
+     * @private
+     */
     _retrieveColor(userLocation, scanIP) {
         return this._colors[userLocation][scanIP];
     }
 
+    /**
+     * Return a HSL color depending on the given ping.
+     * The color changes from green to red along with a ping from 0 to 1000.
+     *
+     * @param ping The ping to retrieve a color from.
+     * @return {string} The HSL color definition
+     * @private
+     */
     static _getPerformanceColor(ping) {
         // If the ping is under 1000 we use the proportional color, else we set to bad result.
         let value = ping < 1000 ? ping / 1000 : 1;
         //value from 0 to 1
         const hue = ((1 - value) * 120).toString(10);
         return ["hsl(", hue, ",100%,50%)"].join("");
+    }
+
+
+    /**
+     * Create a popup on the given map element with the content inside.
+     * This popup will hide every other traceroute, enabling to focus on the clicked one,
+     * and restore them after closing it.
+     *
+     * @param element The element to add a popup to.
+     * @param content The popup content.
+     * @private
+     */
+    _addContentPopup(element, content) {
+        let that = this;
+        let infowindow = new google.maps.InfoWindow({
+            content: content
+        });
+
+        google.maps.event.addListener(infowindow, 'closeclick', function () {
+            that._restoreMarkers();
+        });
+
+        google.maps.event.addListener(element, 'click', function () {
+            if (that._lastInfoWindow) {
+                that._lastInfoWindow.close();
+            }
+            infowindow.open(that._map, element);
+            that._lastInfoWindow = infowindow; // Keep track of the last infoWindow
+
+            for (let i = 0; i < that._traceroutesMarkers.length; i++) {
+                let traceroute = that._traceroutesMarkers[i];
+                if (!traceroute.includes(element)) {
+                    TracerouteMap._setMap(traceroute, null);
+                }
+            }
+        });
+    }
+
+    /**
+     * Reset the current map to every traceroutes.
+     *
+     * @private
+     */
+    _restoreMarkers() {
+        for (let i = 0; i < this._traceroutesMarkers.length; i++) {
+            TracerouteMap._setMap(this._traceroutesMarkers[i], this._map);
+        }
+    }
+
+    /**
+     * Set the given map to every elements of the list.
+     *
+     * @param list The list of markers to update.
+     * @param map The map to set.
+     * @private
+     */
+    static _setMap(list, map) {
+        for (let i = 0; i < list.length; i++) {
+            list[i].setMap(map);
+        }
     }
 }
