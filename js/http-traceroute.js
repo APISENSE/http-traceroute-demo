@@ -12,7 +12,7 @@ function initTraceroutePlot() {
 
     // We assign hooks when Google Map and the document are both loaded.
     $(document).ready(function () {
-        initializePlots(map, crop, charts, filterSelect[0]);
+        initializePlots(map, crop, charts, filterSelect);
 
         $("#loading-data").click(function () {
             crop.getRecords().then((records) => {
@@ -57,7 +57,6 @@ function initializePlots(map, crop, charts, select) {
         initSelect(select, validTraceroutes);
 
         charts.loadCharts(validTraceroutes);
-        map.plotData(validTraceroutes);
     });
 }
 
@@ -81,6 +80,7 @@ function fillSelect(select, data) {
         let el = document.createElement("option");
         el.textContent = opt;
         el.value = opt;
-        select.appendChild(el);
+        select[0].appendChild(el);
     }
+    select.selectpicker('refresh');
 }

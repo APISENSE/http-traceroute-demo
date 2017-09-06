@@ -29,8 +29,12 @@ module.exports = function () {
     }
 
     var getCropData = function getCropData(url, accessKey, callback) {
+        getCropDataPages(url, accessKey, 0, [], callback);
+    };
+
+    var getCropDataPages = function getCropDataPages(url, accessKey, page, data, callback) {
         var xhr = new XMLHttpRequest();
-        xhr.open("GET", url, true);
+        xhr.open("GET", url + "?page=" + page, true);
         if (accessKey) {
             xhr.setRequestHeader('Authorization', 'accessKey ' + accessKey);
         }
@@ -38,6 +42,12 @@ module.exports = function () {
             if (xhr.status === 200) {
                 var data = JSON.parse(xhr.responseText);
                 callback(data);
+                var pageData = JSON.parse(xhr.responseText);
+                if (pageData.length === 0) {
+                    callback(data);
+                } else {
+                    getCropDataPages(url, accessKey, page + 1, data.concat(pageData), callback);
+                }
             }
         };
         xhr.onerror = function (e) {
