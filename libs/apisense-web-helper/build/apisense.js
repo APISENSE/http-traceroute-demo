@@ -311,7 +311,9 @@ module.exports = function () {
                     }
                 }
 
-                xValues = Array.from(xSet).sort();
+                xValues = Array.from(xSet).sort(function (a, b) {
+                    return a - b;
+                });
 
                 var _iteratorNormalCompletion = true;
                 var _didIteratorError = false;
