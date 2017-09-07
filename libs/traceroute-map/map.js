@@ -231,8 +231,9 @@ class TracerouteMap {
         tracerouteMarkers.push(marker);
 
         // Create intermediary routers
-        for (let coordinates in drawRequest.slice(1, -1)) {
-            marker = this._createRouterMarker(drawRequest[coordinates], contentString);
+        let nodes = drawRequest.slice(1, -1);
+        for (let i = 0; i < nodes.length; i++) {
+            marker = this._createRouterMarker(nodes[i], contentString);
             tracerouteMarkers.push(marker);
         }
 
