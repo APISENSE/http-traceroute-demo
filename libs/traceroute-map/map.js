@@ -40,6 +40,7 @@ class TracerouteMap {
             imagePath: 'https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/images/m'
         };
         this._clusterHandler = new MarkerClusterer(this._map, [], clusterOptions);
+        this._drawColorLegend();
     }
 
     /**
@@ -452,5 +453,52 @@ class TracerouteMap {
             this._clusterHandler.removeMarker(marker);
         }
         this._clusterHandler.redraw()
+    }
+
+    /**
+     * Draw color boundaries around ping values.
+     *
+     * @private
+     */
+    _drawColorLegend() {
+        let legend = document.createElement('div');
+        legend.id = "legend";
+        let title = document.createElement('h4');
+        title.textContent = "Ping";
+        legend.appendChild(title);
+        let values = [0, 200, 400, 600, 800, 1000];
+        for (const key in values) {
+            const ping = values[key];
+            const color = TracerouteMap._colorRectangle(TracerouteMap._getPerformanceColor(ping));
+            legend.appendChild(color);
+            const div = document.createElement('div');
+            div.innerHTML = ping + " ms";
+            legend.appendChild(div);
+        }
+
+        this._map.controls[google.maps.ControlPosition.RIGHT_BOTTOM] = [];
+        this._map.controls[google.maps.ControlPosition.RIGHT_BOTTOM].push(legend);
+    }
+
+    /**
+     * Draw a rectangle containing the given color.
+     *
+     * @param color The color to draw.
+     * @return {Element} The drawn rectangle.
+     * @private
+     */
+    static _colorRectangle(color) {
+        const c = document.createElement("canvas");
+        c.width = 20;
+        c.height = 10;
+
+        const ctx = c.getContext("2d");
+
+        ctx.beginPath();
+        ctx.rect(0, 0, 20, 10);
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        return c;
     }
 }
