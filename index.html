@@ -93,8 +93,8 @@
 
 <div class="row" id="wrapper-map">
     <div class="col-md-12" id="map-view">
-        <div class="btn-group pull-right" role="group" aria-label="...">
-
+        <div class="btn-group pull-right map-controls" role="group" aria-label="...">
+            <p> Please select one or more endpoints to start drawing </p>
             <select class="selectpicker pull-left" id="traceroute-picker"
                     title="Select traceroutes" data-actions-box="true"
                     data-live-search="true" multiple>
@@ -156,6 +156,7 @@
 <script src="/http-traceroute-demo/libs/apisense-web-helper/build/apisense.bundle.min.js"></script>
 
 <!-- Add APISENSE Map lib -->
+<script src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script>
 <script src="/http-traceroute-demo/libs/traceroute-map/geoip.js"></script>
 <script src="/http-traceroute-demo/libs/traceroute-map/map.js"></script>
 
@@ -171,7 +172,6 @@
 
 <!-- Google Map API -->
 <script src="https://maps.googleapis.com/maps/api/js?libraries=visualization&callback=initTraceroutePlot"></script>
-<script src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script>
 
 <!-- Analytics script
 <script>
