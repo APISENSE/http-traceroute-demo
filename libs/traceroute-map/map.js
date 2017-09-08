@@ -5,7 +5,7 @@
  * where 0 will be displayed in green and 1000+ in red.
  *
  * Please ensure to load Google Map API before initializing this class:
- * <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization"></script>
+ * <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=visualization&callback=initTraceroutePlot"></script>
  * <script src="https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/src/markerclusterer.js"></script>
  */
 class TracerouteMap {
@@ -22,10 +22,11 @@ class TracerouteMap {
         };
         this._mapElement = element;
         this._lastInfoWindow = undefined;
-        this._usersLocations = [];
-        this._colors = {};
+        this._usersMarkers = [];
+        this._endpointsMarkers = [];
         this._traceroutesMarkers = [];
-        this.reloadGoogleMap()
+        this._colors = {};
+        this.reloadGoogleMap() // Initialize this._map
     }
 
     /**
@@ -33,6 +34,28 @@ class TracerouteMap {
      */
     reloadGoogleMap() {
         this._map = this._initializeUnderlying();
+        let clusterOptions = {
+            gridSize: 50,
+            maxZoom: 7,
+            imagePath: 'https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/images/m'
+        };
+        this._clusterHandler = new MarkerClusterer(this._map, [], clusterOptions);
+    }
+
+    /**
+     * Reset the map to show nothing.
+     *
+     * @private
+     */
+    _clearMap() {
+        for (let i = 0; i < this._traceroutesMarkers.length; i++) {
+            this._removeMarkersList(this._traceroutesMarkers[i]);
+        }
+
+        this._usersMarkers = [];
+        this._endpointsMarkers = [];
+        this._traceroutesMarkers = [];
+        this._colors = {};
     }
 
     /**
@@ -49,7 +72,6 @@ class TracerouteMap {
         });
 
         let homeControlDiv = document.createElement('div');
-        this._geolocControl(homeControlDiv, map);
 
         homeControlDiv.index = 1;
         map.controls[google.maps.ControlPosition.LEFT_TOP].push(homeControlDiv);
@@ -61,55 +83,6 @@ class TracerouteMap {
         });
 
         return map;
-    }
-
-    /**
-     * GeoLoc style+behavior.
-     *
-     * @param {[type]} controlDiv Div to insert the element
-     * @param {[type]} map        Instance of Google Map
-     * @private
-     */
-    _geolocControl(controlDiv, map) {
-        controlDiv.style.padding = '0px 0px 5px 32px';
-
-        // Set CSS for the control border
-        let controlUI = document.createElement('div');
-        controlUI.style.backgroundColor = 'white';
-        controlUI.style.border = '1px solid #ff8533';
-        controlUI.style.borderRadius = '15px';
-        controlUI.style.cursor = 'pointer';
-        controlUI.style.textAlign = 'center';
-        controlUI.title = 'Find me';
-        controlDiv.appendChild(controlUI);
-
-        // Set CSS for the control interior
-        let controlText = document.createElement('div');
-        controlText.style.color = '#ff8533';
-        controlText.style.fontSize = '11px';
-        controlText.style.padding = '3px 6px';
-        controlText.innerHTML = '<i class="fa fa-location-arrow"></i>';
-        controlUI.appendChild(controlText);
-
-        // Setup the click event listeners: simply set the map to Paris
-        google.maps.event.addDomListener(controlUI, 'click', function () {
-            map.setCenter(new google.maps.LatLng(paris.lat, paris.lng));
-        });
-    }
-
-    /**
-     * Reset the map to show nothing.
-     *
-     * @private
-     */
-    _clearMap() {
-        for (let i = 0; i < this._traceroutesMarkers.length; i++) {
-            TracerouteMap._setMap(this._traceroutesMarkers[i], null);
-        }
-
-        this._usersLocations = [];
-        this._traceroutesMarkers = [];
-        this._colors = {};
     }
 
     /**
@@ -178,10 +151,13 @@ class TracerouteMap {
                     Object.assign(nodesSet, localizedNodes[index]);
                 }
 
-                that._drawServerNodes(userLocation, orderedNodes, nodesSet, contentString);
+                let serverPath = TracerouteMap._computeNodePath(userLocation, orderedNodes, nodesSet);
+                let color = that._retrieveColor(userLocation, orderedNodes.slice(-1)[0]);
+
+                that._drawServerNodes(serverPath, color, contentString);
+                that._clusterHandler.redraw()
             });
         }
-        this._clusteringMarkers(this._usersLocations);
     }
 
     /**
@@ -200,64 +176,61 @@ class TracerouteMap {
     }
 
     /**
+     * Create an array of location representing the current traceroute.
+     *
+     * @param userLocation The initial location.
+     * @param orderedNodes The list of encountered nodes, in order.
+     * @param localizedNodes The mapping between the nodes and their location.
+     * @return {[]} An array of location.
+     * @private
+     */
+    static _computeNodePath(userLocation, orderedNodes, localizedNodes) {
+        let nodePath = [userLocation];
+        for (let index in orderedNodes) {
+            let ip = orderedNodes[index];
+            if (ip in localizedNodes) {
+                nodePath.push(localizedNodes[ip]);
+            }
+        }
+        return nodePath;
+    }
+
+    /**
      * Draw the traceroute in order from userLocation to the end of orderedNodes.
      * This uses localizedNodes to print each nodes at the right location.
      * Finally, it assigns the contentString to the initial userLocation.
      *
-     * @param userLocation The initial traceroute location.
-     * @param orderedNodes The traversed servers' IP.
-     * @param localizedNodes The servers IP - localization mapping.
+     * @param drawRequest The set of server to draw.
+     * @param color Color of the path to draw.
      * @param contentString The traceroute data to print.
      * @private
      */
-    _drawServerNodes(userLocation, orderedNodes, localizedNodes, contentString) {
+    _drawServerNodes(drawRequest, color, contentString) {
         let tracerouteMarkers = [];
-        let drawRequest = [userLocation];
-        let ip;
-        for (let index in orderedNodes) {
-            ip = orderedNodes[index];
-            if (ip in localizedNodes) {
-                drawRequest.push(localizedNodes[ip]);
-            }
-        }
 
         // Create start point
-        let user = this._createUserMarker(userLocation, contentString);
-        this._usersLocations.push(user);
+        let user = this._createUserMarker(drawRequest[0], contentString);
         tracerouteMarkers.push(user);
+        this._usersMarkers.push(user);
 
         // Create endpoint
         let marker = this._createFinalRouterMarker(drawRequest.slice(-1)[0], contentString); // Final router coordinates
         tracerouteMarkers.push(marker);
+        this._endpointsMarkers.push(marker);
 
         // Create intermediary routers
         let nodes = drawRequest.slice(1, -1);
         for (let i = 0; i < nodes.length; i++) {
-            marker = this._createRouterMarker(nodes[i], contentString);
+            marker = this._createRouterMarker(nodes[i], i, contentString);
             tracerouteMarkers.push(marker);
+            this._clusterHandler.addMarker(marker);
         }
 
         // Draw route using final
-        let color = this._retrieveColor(userLocation, orderedNodes.slice(-1)[0]); // Final router IP
-        marker = this._drawRequestsPath(drawRequest, color, contentString);
-        tracerouteMarkers.push(marker);
+        let path = this._drawRequestsPath(drawRequest, color, contentString);
+        tracerouteMarkers.push(path);
 
         this._traceroutesMarkers.push(tracerouteMarkers);
-    }
-
-    /**
-     * Create clusters with the given markers.
-     *
-     * @param markersToClusterize
-     * @private
-     */
-    _clusteringMarkers(markersToClusterize) {
-        let mcOptions = {
-            gridSize: 50,
-            maxZoom: 7,
-            imagePath: 'https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/images/m'
-        };
-        new MarkerClusterer(this._map, markersToClusterize, mcOptions); // Create cluster map
     }
 
     /**
@@ -269,6 +242,8 @@ class TracerouteMap {
      * @private
      */
     _createUserMarker(coordinates, infoContent) {
+        console.log("Printing start point");
+        console.log(coordinates.lat() + " - " + coordinates.lng());
         let marker = new google.maps.Marker({
             position: coordinates,
             map: this._map,
@@ -282,15 +257,17 @@ class TracerouteMap {
      * Create a Router marker on the map
      *
      * @param coordinates The server coordinates.
-     * @param infoContent
+     * @param index The index to put as label.
+     * @param infoContent Data about the traceroute.
      * @return {google.maps.Marker} The created router marker.
      * @private
      */
-    _createRouterMarker(coordinates, infoContent) {
+    _createRouterMarker(coordinates, index, infoContent) {
         let marker = new google.maps.Marker({
             position: coordinates,
             map: this._map,
-            icon: "https://cdn2.iconfinder.com/data/icons/gnomeicontheme/32x32/places/gnome-fs-server.png", // Router
+            label: (index + 1).toString(),
+            icon: "https://cdn2.iconfinder.com/data/icons/gnomeicontheme/32x32/places/gnome-fs-server.png",
             title: 'Router'
         });
         this._addContentPopup(marker, infoContent);
@@ -413,7 +390,7 @@ class TracerouteMap {
             for (let i = 0; i < that._traceroutesMarkers.length; i++) {
                 let traceroute = that._traceroutesMarkers[i];
                 if (!traceroute.includes(element)) {
-                    TracerouteMap._setMap(traceroute, null);
+                    that._removeMarkersList(traceroute);
                 }
             }
         });
@@ -426,20 +403,54 @@ class TracerouteMap {
      */
     _restoreMarkers() {
         for (let i = 0; i < this._traceroutesMarkers.length; i++) {
-            TracerouteMap._setMap(this._traceroutesMarkers[i], this._map);
+            this._restoreMarkersList(this._traceroutesMarkers[i]);
         }
     }
 
     /**
-     * Set the given map to every elements of the list.
+     * Restore the elements of the list on the map and clusters.
      *
      * @param list The list of markers to update.
-     * @param map The map to set.
      * @private
      */
-    static _setMap(list, map) {
+    _restoreMarkersList(list) {
         for (let i = 0; i < list.length; i++) {
-            list[i].setMap(map);
+            let marker = list[i];
+            marker.setMap(this._map);
+
+            if (this._isValidIntermediaryNode(marker)) {
+                this._clusterHandler.addMarker(marker);
+            }
         }
+        this._clusterHandler.redraw()
+    }
+
+    /**
+     * We need a marker which is not an endpoint nor an user.
+     *
+     * @param marker The marker to test.
+     * @return {boolean} True if the marker is a node, false otherwise.
+     * @private
+     */
+    _isValidIntermediaryNode(marker) {
+        // getPosition ensure that we have a marker and not a Polyline.
+        return marker.getPosition !== undefined
+            && !this._usersMarkers.includes(marker)
+            && !this._endpointsMarkers.includes(marker)
+    }
+
+    /**
+     * Remove the elements of the list from the map and clusters.
+     *
+     * @param list The list of markers to update.
+     * @private
+     */
+    _removeMarkersList(list) {
+        for (let i = 0; i < list.length; i++) {
+            let marker = list[i];
+            marker.setMap(null);
+            this._clusterHandler.removeMarker(marker);
+        }
+        this._clusterHandler.redraw()
     }
 }
